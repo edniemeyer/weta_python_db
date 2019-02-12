@@ -4,12 +4,15 @@ import sys, getopt, csv
 
 from operator import itemgetter
 
+from itertools import groupby
+
 def main(argv):
 	select=''
 	order=''
 	filtr=''
+	groupBy=''
 	try:
-		opts, args = getopt.getopt(argv,"s:f:o:")
+		opts, args = getopt.getopt(argv,"s:f:o:g:")
 	except getopt.GetoptError:
 		print 'query.py -s <columns> -o <columns> -f <column>=<value>'
 		sys.exit(2)
@@ -20,9 +23,12 @@ def main(argv):
 			order = arg
 		elif opt == "-f":
 			filtr = arg
+		elif opt == "-g":
+			groupBy = arg
 	with open("db.csv","r") as file:
 		data = csv.DictReader(file, delimiter=",")
 		data = list(data)
+		result = []
 		if order!='':
 			cols = order.split(",")
 			data.sort(key=itemgetter(*cols))
@@ -33,7 +39,24 @@ def main(argv):
 		if select!='':
 			cols = select.split(",")
 			for row in data:
-				print {k: row[k] for k in cols}
+				result.append({k: row[k] for k in cols})
+		grouped=[]
+		if groupBy!='':
+			result.sort(key=itemgetter(groupBy))
+			for k,v in groupby(result,key=lambda x:x[groupBy]):
+				grouped.append(list(v))
+			print grouped
+			for group in grouped:
+				#sum
+				#print sum(int(item['SHOT']) for item in group)
+				#min
+				#print min(int(item['SHOT']) for item in group)
+				#max
+				#print max(int(item['SHOT']) for item in group)
+				#count
+				print len(set(int(item['SHOT']) for item in group))
+				#collect
+				print list(set(int(item['SHOT']) for item in group))
 
 
 if __name__ == "__main__":
