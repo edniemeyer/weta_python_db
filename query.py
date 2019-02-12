@@ -2,6 +2,8 @@
 
 import sys, getopt, csv
 
+from operator import itemgetter
+
 def main(argv):
 	select=''
 	order=''
@@ -9,7 +11,7 @@ def main(argv):
 	try:
 		opts, args = getopt.getopt(argv,"s:f:o:")
 	except getopt.GetoptError:
-		print 'query.py -s <columns> -o <columns>'
+		print 'query.py -s <columns> -o <columns> -f <column>=<value>'
 		sys.exit(2)
 	for opt, arg in opts:
 		if opt == "-s":
@@ -20,9 +22,14 @@ def main(argv):
 			filtr = arg
 	with open("db.csv","r") as file:
 		data = csv.DictReader(file, delimiter=",")
+		data = list(data)
+		if order!='':
+			cols = order.split(",")
+			data.sort(key=itemgetter(*cols))
 		if filtr!='':
-			col,val=filtr.split("=")
-			data=filter(lambda filtered: filtered[col] == val, data)
+			col,val = filtr.split("=")
+			data = filter(lambda filtered: filtered[col] == val, data)
+
 		if select!='':
 			cols = select.split(",")
 			for row in data:
