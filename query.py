@@ -29,23 +29,34 @@ def main(argv):
 		data = csv.DictReader(file, delimiter=",")
 		data = list(data)
 		result = []
+
 		if order!='':
 			cols = order.split(",")
 			data.sort(key=itemgetter(*cols))
 		if filtr!='':
 			col,val = filtr.split("=")
 			data = filter(lambda filtered: filtered[col] == val, data)
-
 		if select!='':
 			cols = select.split(",")
+
+			cols_select=[]
+			cols_aggregate={}
+
+			for i in cols:
+				cols_select.append(i.split(':')[0])
+				if ':' in i:
+					key, agg = i.split(':')
+					cols_aggregate[key] = agg
+			
 			for row in data:
-				result.append({k: row[k] for k in cols})
+				result.append({k: row[k] for k in cols_select})
+			print result
+		
 		grouped=[]
 		if groupBy!='':
 			result.sort(key=itemgetter(groupBy))
 			for k,v in groupby(result,key=lambda x:x[groupBy]):
 				grouped.append(list(v))
-			print grouped
 			for group in grouped:
 				#sum
 				#print sum(int(item['SHOT']) for item in group)
