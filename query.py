@@ -50,7 +50,7 @@ def main(argv):
 			
 			for row in data:
 				result.append({k: row[k] for k in cols_select})
-			print result
+			print cols_aggregate
 		
 		grouped=[]
 		if groupBy!='':
@@ -58,16 +58,19 @@ def main(argv):
 			for k,v in groupby(result,key=lambda x:x[groupBy]):
 				grouped.append(list(v))
 			for group in grouped:
-				#sum
-				#print sum(int(item['SHOT']) for item in group)
-				#min
-				#print min(int(item['SHOT']) for item in group)
-				#max
-				#print max(int(item['SHOT']) for item in group)
-				#count
-				print len(set(int(item['SHOT']) for item in group))
-				#collect
-				print list(set(int(item['SHOT']) for item in group))
+				for col, aggregate in cols_aggregate.items():
+					#using float so it works with all columns that have numbers
+					if aggregate == 'sum':
+						print sum(float(item[col]) for item in group)
+					if aggregate == 'min':
+						print min(float(item[col]) for item in group)
+					if aggregate == 'max':
+						print max(float(item[col]) for item in group)
+					#using set on the next two methods as it needs to be distinct values
+					if aggregate == 'count':
+						print len(set(int(item[col]) for item in group))
+					if aggregate == 'collect':
+						print list(set(int(item[col]) for item in group))
 
 
 if __name__ == "__main__":
