@@ -35,28 +35,10 @@ def main(argv):
 			data.sort(key=itemgetter(*cols))
 		if filtr!='':
 			if 'AND' in filtr:
-				and_cols = filtr.split(" AND ")
-				cols = []
-				vals = []
-				for i in and_cols:
-					if 'OR' in i:
-						or_cols = i.split(" OR ")
-					else:
-						col,val = i.split("=")
-						cols.append(col)
-						vals.append(val)
-
-				data = filter(lambda filtered: apply_and(filtered,cols,vals), data)
+				data = and_clause(data,filtr)
 
 			elif 'OR' in filtr:
-				or_cols = filtr.split(" OR ")
-				cols = []
-				vals = []
-				for i in or_cols:
-					col, val = i.split("=")
-					cols.append(col)
-					vals.append(val)
-				data = (filter(lambda filtered: apply_or(filtered,cols,vals), data))
+				data = or_clause(data,filtr)
 			else:
 				col,val = filtr.split("=")
 				data = filter(lambda filtered: filtered[col] == val, data)
@@ -102,18 +84,47 @@ def main(argv):
 		print result
 
 
+#function to be used on filter function and apply OR to all elements in list
 def apply_or(filtered, cols, vals):
 	if len(cols) > 1:
 		return filtered[cols[0]] == vals[0] or apply_or(filtered,cols[1:],vals[1:])
 	else:
 		return filtered[cols[0]] == vals[0]
 
+#function to be used on filter function and apply AND to all elements in list
 def apply_and(filtered, cols, vals):
 	if len(cols) > 1:
 		return filtered[cols[0]] == vals[0] and apply_and(filtered,cols[1:],vals[1:])
 	else:
 		return filtered[cols[0]] == vals[0]
 
+#function used to execute OR query statements
+def or_clause(data,clause):
+	or_cols = clause.split(" OR ")
+	cols = []
+	vals = []
+	for i in or_cols:
+		col, val = i.split("=")
+		cols.append(col)
+		vals.append(val)
+	data = (filter(lambda filtered: apply_or(filtered,cols,vals), data))
+	return data
+
+#function used to execute AND query statements, also handling OR query statements
+def and_clause(data,clause):
+	and_cols = clause.split(" AND ")
+	cols = []
+	vals = []
+	for i in and_cols:
+		if 'OR' in i:
+			data = or_clause(data,i)
+		else:
+			col,val = i.split("=")
+			cols.append(col)
+			vals.append(val)
+
+	data = filter(lambda filtered: apply_and(filtered,cols,vals), data)
+	return data
 
 if __name__ == "__main__":
    main(sys.argv[1:])
