@@ -36,16 +36,19 @@ def main(argv):
 		if filtr!='':
 			if 'AND' in filtr:
 				and_cols = filtr.split(" AND ")
-				print and_cols
+				cols = []
+				vals = []
 				for i in and_cols:
-					if 'OR' in and_cols:
+					if 'OR' in i:
 						or_cols = i.split(" OR ")
-					cols_select.append(i.split(':')[0])
-				col,val = and_cols.split("=")
-				data = filter(lambda filtered: filtered[col] == val, data)
+					else:
+						col,val = i.split("=")
+						cols.append(col)
+						vals.append(val)
+
+				data = filter(lambda filtered: apply_and(filtered,cols,vals), data)
 
 			elif 'OR' in filtr:
-				or_data = []
 				or_cols = filtr.split(" OR ")
 				cols = []
 				vals = []
@@ -102,6 +105,12 @@ def main(argv):
 def apply_or(filtered, cols, vals):
 	if len(cols) > 1:
 		return filtered[cols[0]] == vals[0] or apply_or(filtered,cols[1:],vals[1:])
+	else:
+		return filtered[cols[0]] == vals[0]
+
+def apply_and(filtered, cols, vals):
+	if len(cols) > 1:
+		return filtered[cols[0]] == vals[0] and apply_and(filtered,cols[1:],vals[1:])
 	else:
 		return filtered[cols[0]] == vals[0]
 
