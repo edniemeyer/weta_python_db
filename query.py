@@ -14,7 +14,7 @@ def main(argv):
 	try:
 		opts, args = getopt.getopt(argv,"s:f:o:g:")
 	except getopt.GetoptError:
-		print 'query.py -s <columns> -o <columns> -f <column>=<value>'
+		print 'query.py -s <columns> -o <columns> -f <column>=<value> -g <column>'
 		sys.exit(2)
 	for opt, arg in opts:
 		if opt == "-s":
@@ -34,8 +34,29 @@ def main(argv):
 			cols = order.split(",")
 			data.sort(key=itemgetter(*cols))
 		if filtr!='':
-			col,val = filtr.split("=")
-			data = filter(lambda filtered: filtered[col] == val, data)
+			if 'AND' in filtr:
+				and_cols = filtr.split(" AND ")
+				print and_cols
+				for i in and_cols:
+					if 'OR' in and_cols:
+						or_cols = i.split(" OR ")
+					cols_select.append(i.split(':')[0])
+				col,val = and_cols.split("=")
+				data = filter(lambda filtered: filtered[col] == val, data)
+
+			elif 'OR' in filtr:
+				or_data = []
+				or_cols = filtr.split(" OR ")
+				cols = []
+				vals = []
+				for i in or_cols:
+					col, val = i.split("=")
+					cols.append(col)
+					vals.append(val)
+				data = (filter(lambda filtered: apply_or(filtered,cols,vals), data))
+			else:
+				col,val = filtr.split("=")
+				data = filter(lambda filtered: filtered[col] == val, data)
 		if select!='':
 			cols = select.split(",")
 
@@ -76,6 +97,13 @@ def main(argv):
 				result.append(group[0])
 
 		print result
+
+
+def apply_or(filtered, cols, vals):
+	if len(cols) > 1:
+		return filtered[cols[0]] == vals[0] or apply_or(filtered,cols[1:],vals[1:])
+	else:
+		return filtered[cols[0]] == vals[0]
 
 
 if __name__ == "__main__":
